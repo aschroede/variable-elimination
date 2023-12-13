@@ -39,4 +39,3 @@ class VariableElimination():
         #   3.2 Sum out the variable from the multiplied factor
         # 4. Multiply all remaining factors
         # 5. Normalize
-

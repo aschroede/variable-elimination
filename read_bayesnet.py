@@ -41,8 +41,6 @@ class BayesNet():
                     self.parse_probability(line_number, filename)
                 line_number = line_number + 1
 
-        return 0
-
     def parse_probability(self, line_number, filename):
         """
         Parse the probability distribution
