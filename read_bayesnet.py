@@ -7,7 +7,8 @@ Representation of a Bayesian network read in from a .bif file.
 
 import pandas as pd
 
-class BayesNet():
+
+class BayesNet:
     """
     This class represents a Bayesian network.
     It can read files in a .bif format (if the formatting is
@@ -62,10 +63,10 @@ class BayesNet():
                 df.loc[len(df)] = [value, p]
                 self.probabilities[variable] = df
         else:
-            #create dataFrame to store the variables
+            # create dataFrame to store the variables
             df = pd.DataFrame(columns=[variable] + parents + ['prob'])
 
-            #loop over the lines until a line is the same as "}" 
+            # loop over the lines until a line is the same as "}"
             with open(filename, 'r') as file:
                 for i in range(line_number + 1):
                     file.readline()
@@ -73,7 +74,7 @@ class BayesNet():
                     if '}' in line:
                         # Done reading this probability distribution
                         break
-                    
+
                     # Get the values for the parents
                     comma_sep_values = line.split('(')[1].split(')')[0]
                     values = [v.strip() for v in comma_sep_values.split(',')]
@@ -82,7 +83,7 @@ class BayesNet():
                     comma_sep_probs = line.split(')')[1].split(';')[0].strip()
                     probs = [float(p) for p in comma_sep_probs.split(',')]
 
-                	# Create a row in the df for each value combination
+                    # Create a row in the df for each value combination
                     for value, p in zip(self.values[variable], probs):
                         df.loc[len(df)] = [value] + values + [p]
 
@@ -93,7 +94,7 @@ class BayesNet():
         Parse the name of a variable and its possible values
         """
         variable = open(filename, 'r').readlines()[line_number].split()[1]
-        line = open(filename, 'r').readlines()[line_number+1]
+        line = open(filename, 'r').readlines()[line_number + 1]
         start = line.find('{') + 1
         end = line.find('}')
         values = [value.strip() for value in line[start:end].split(',')]

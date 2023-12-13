@@ -14,21 +14,21 @@ if __name__ == '__main__':
     net = BayesNet('earthquake.bif')  # Format and other networks can be found on http://www.bnlearn.com/bnrepository/
 
     # These are the variables read from the network that should be used for variable elimination
-    print("Nodes:")
-    print(net.nodes)
-    print("Values:")
-    print(net.values)
-    print("Parents:")
-    print(net.parents)
-    print("Probabilities:")
-    print(net.probabilities)
+    # print("Nodes:")
+    # print(net.nodes)
+    # print("Values:")
+    # print(net.values)
+    # print("Parents:")
+    # print(net.parents)
+    # print("Probabilities:")
+    # print(net.probabilities)
 
-    cpt1 = net.probabilities["Alarm"]
-    cpt2 = net.probabilities["JohnCalls"]
-    f_alarm = Factor(cpt1)
-    f_john = Factor(cpt2)
-
-    Factor.multiply(f_alarm, f_john, "Alarm")
+    # cpt1 = net.probabilities["Alarm"]
+    # cpt2 = net.probabilities["JohnCalls"]
+    # f_alarm = Factor(cpt1)
+    # f_john = Factor(cpt2)
+    #
+    # Factor.multiply(f_alarm, f_john, "Alarm")
 
     # Make your variable elimination code in the seperate file: 'variable_elim'.
     # You use this file as follows:
@@ -45,6 +45,12 @@ if __name__ == '__main__':
     # given the network. Experimentation with different heuristics will earn bonus points. The elimination
     # ordering can for example be set as follows:
     elim_order = net.nodes
+    elim_order.remove(query)
+
+    for var, value in evidence.items():
+        elim_order.remove(var)
 
     # Call the variable elimination function for the queried node given the evidence and the elimination ordering as follows:   
-    # ve.run(query, evidence, elim_order)
+    result = ve.run(query, evidence, elim_order)
+
+    print(result.get_data_frame())
