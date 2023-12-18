@@ -53,5 +53,8 @@ class Factor:
 
     def get_vars(self):
         return self.factor.columns[:].tolist()
+    
+    def __str__(self) -> str:
+        return str(self.get_vars())
 
 # list

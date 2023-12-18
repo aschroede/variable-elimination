@@ -47,6 +47,7 @@ if __name__ == '__main__':
     elim_order = net.nodes
     elim_order.remove(query)
 
+    # Remove evidence variables
     for var, value in evidence.items():
         elim_order.remove(var)
 
