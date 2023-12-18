@@ -7,51 +7,68 @@ Code to read in Bayesian Networks has been provided. We assume you have installe
 """
 from read_bayesnet import BayesNet
 from variable_elim import VariableElimination
-from factor import Factor
+from elim_order_heuristics import min_factors, min_parents
+from logger import logger
+from datetime import datetime
+import time
+
+least_incoming = "Least incoming arcs first"
+fewest_factors = "Contained in fewest factors first"
+earthquake_example = "Earthquake"
+alarm_example = "Alarm"
+def main():
+
+
+    while True:
+
+        # Select example
+        example_selection = int((input(f"\nSelect an example query:\n"
+                                       f"1) {earthquake_example}\n"
+                                       f"2) {alarm_example}\n"
+                                       "3) Quit\n")))
+
+        if example_selection == 1:
+            net = BayesNet('Networks/earthquake.bif')
+            ve = VariableElimination(net)
+            query = 'Alarm'
+            evidence = {'Burglary': 'True'}
+        elif example_selection == 2:
+            net = BayesNet('Networks/alarm.bif')
+            ve = VariableElimination(net)
+            query = 'Tampering'
+            evidence = {'Smoke': '1', 'Report': '1'}
+        else:
+            break
+
+        # Select Heuristic
+        heuristic_selection = int(input(f"Select elimination order heuristic:\n"
+                                        f"1) {least_incoming}\n"
+                                        f"2) {fewest_factors}\n"))
+
+        # Get elimination order
+        if heuristic_selection == 1:
+            elim_order = min_parents(net)
+            elim_type = least_incoming
+        else:
+            elim_order = min_factors(net)
+            elim_type = fewest_factors
+
+        # Remove query and evidence nodes from elim order
+        elim_order.remove(query)
+
+        for var, value in evidence.items():
+            elim_order.remove(var)
+
+        # Log Information
+        logger.info("------- NEW VE RUN STARTED -------")
+        logger.info("Date: " + str(datetime.now()))
+        logger.info("Elimination order heuristic used: " + elim_type)
+        logger.info("Elimination Order: " + str(elim_order))
+
+        # Run VE
+        result = ve.run(query, evidence, elim_order)
+        print("\nVerbose log output saved to " + logger.handlers[0].baseFilename)
+
 
 if __name__ == '__main__':
-    # The class BayesNet represents a Bayesian network from a .bif file in several variables
-    net = BayesNet('earthquake.bif')  # Format and other networks can be found on http://www.bnlearn.com/bnrepository/
-
-    # These are the variables read from the network that should be used for variable elimination
-    # print("Nodes:")
-    # print(net.nodes)
-    # print("Values:")
-    # print(net.values)
-    # print("Parents:")
-    # print(net.parents)
-    # print("Probabilities:")
-    # print(net.probabilities)
-
-    # cpt1 = net.probabilities["Alarm"]
-    # cpt2 = net.probabilities["JohnCalls"]
-    # f_alarm = Factor(cpt1)
-    # f_john = Factor(cpt2)
-    #
-    # Factor.multiply(f_alarm, f_john, "Alarm")
-
-    # Make your variable elimination code in the seperate file: 'variable_elim'.
-    # You use this file as follows:
-    ve = VariableElimination(net)
-
-    # Set the node to be queried as follows:
-    query = 'Alarm'
-
-    # The evidence is represented in the following way (can also be empty when there is no evidence): 
-    evidence = {'Burglary': 'True'}
-
-    # Determine your elimination ordering before you call the run function. The elimination ordering   
-    # is either specified by a list or a heuristic function that determines the elimination ordering
-    # given the network. Experimentation with different heuristics will earn bonus points. The elimination
-    # ordering can for example be set as follows:
-    elim_order = net.nodes
-    elim_order.remove(query)
-
-    # Remove evidence variables
-    for var, value in evidence.items():
-        elim_order.remove(var)
-
-    # Call the variable elimination function for the queried node given the evidence and the elimination ordering as follows:   
-    result = ve.run(query, evidence, elim_order)
-
-    print(result.get_data_frame())
+    main()

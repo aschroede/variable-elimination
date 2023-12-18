@@ -1,5 +1,5 @@
 """
-@Author: Joris van Vugt, Moira Berens, Leonieke van den Bulk
+@Author: Joris van Vugt, Moira Berens, Leonieke van den Bulk, Andrew Schroeder
 
 Class for the implementation of the variable elimination algorithm.
 
@@ -39,12 +39,13 @@ class VariableElimination():
 
         logger.info("Query Variables: " + query)
         logger.info("Observed Variables: " + str(observed))
-        logger.info("Elimination Order: " + str(elim_order))
 
         assert isinstance(self.network, BayesNet)
-        factors = get_factors_from_cpts(self.network.probabilities)
 
-        logger.info("Original Factors: ")
+        # Convert cpts to factors
+        factors = self.get_factors_from_cpts()
+
+        logger.debug("Original Factors: ")
         self.log_factors(factors)
 
         # Clamp evidence in the factors
@@ -57,82 +58,76 @@ class VariableElimination():
                     if factor.get_data_frame().columns[:].tolist() == ["prob"]:
                         to_delete.append(factor)
 
+        # If factor is trivial after reduction, delete it from list
         for factor in to_delete:
             factors.remove(factor)
 
-        logger.info("\nFactors with evidence applied: ")
+        logger.debug("Factors with evidence applied: ")
         self.log_factors(factors)
-
 
         # Use provided elimination order
         for var_to_eliminate in elim_order:
 
-            logger.info("Eliminate variable: " + var_to_eliminate)
+            logger.debug("Eliminate variable: " + var_to_eliminate)
 
             # Collect all factors to be multiplied
             to_multiply = [factor for factor in factors if any(var == var_to_eliminate for var in factor.get_vars())]
-            logger.info("Factors to multiply containing variable: " + var_to_eliminate)
+            logger.debug("Factors to multiply containing variable: " + var_to_eliminate)
             self.log_factors(to_multiply)
 
             # Multiply together
             result = to_multiply[0]
             for factor in to_multiply[1:]:
-                result = result.multiply(factor, var_to_eliminate)
-            
-            logger.info("Result of multiplication: ")
+                result.multiply(factor, var_to_eliminate)
+            logger.debug("Result of multiplication: ")
             self.log_factor(result)
 
-
-            # Marginalize
-            result = result.marginalize(var_to_eliminate)
-
-            logger.info("Sum out " + var_to_eliminate)
+            # Marginalize out the variable to be eliminated
+            result.marginalize(var_to_eliminate)
+            logger.debug("Sum out " + var_to_eliminate)
             self.log_factor(result)
-
 
             # Remove used factors and replace with new one in list of factors
             for factor in to_multiply:
                 factors.remove(factor)
             factors.append(result)
-
-            logger.info("New List of Factors: ")
+            logger.debug("New List of Factors: ")
             self.log_factors(factors)
 
-        logger.info("Elimination step complete. Multiply the following remaining factors together.")
-        
+        logger.debug("Elimination step complete. Multiply the following remaining factors together.")
         if len(factors) > 1:
             self.log_factors(factors)
         else:
-            self.log_factor(factor)
+            self.log_factor(factors[0])
 
         # Multiply remaining factors
         result = factors[0]
         if len(factors) > 1:
             for factor in factors[1:]:
-                result = result.multiply(factor, query)
-
-        logger.info("Final factor pre-normalization.")
+                result.multiply(factor, query)
+        logger.debug("Final factor pre-normalization.")
         self.log_factor(result)
 
         # Need to normalize as well
         result.normalize()
-
         logger.info("Final factor post-normalization.")
-        self.log_factor(result)
+        self.log_factor(result, info=True)
 
         return result
 
     def log_factors(self, factors):
         for factor in factors:
-            logger.info('\t'+ factor.get_data_frame().to_string().replace('\n', '\n\t'))
+            logger.debug('\t' + factor.get_data_frame().to_string().replace('\n', '\n\t'))
 
-    def log_factor(self, factor):
-        logger.info('\t'+ factor.get_data_frame().to_string().replace('\n', '\n\t'))
+    def log_factor(self, factor, info=False):
+        if info:
+            logger.info('\t' + factor.get_data_frame().to_string().replace('\n', '\n\t'))
+        else:
+            logger.debug('\t' + factor.get_data_frame().to_string().replace('\n', '\n\t'))
 
+    def get_factors_from_cpts(self):
+        factors = []
+        for name, cpt in self.network.probabilities.items():
+            factors.append(Factor(cpt))
 
-def get_factors_from_cpts(probabilities):
-    factors = []
-    for name, cpt in probabilities.items():
-        factors.append(Factor(cpt))
-
-    return factors
+        return factors

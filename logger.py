@@ -1,16 +1,19 @@
 import logging
+import sys
 
-
+# Setup logger
+log_formatter = logging.Formatter('\n%(message)s')
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-logger.setLevel(logging.INFO)
+# Log to file
+file_handler = logging.FileHandler('VE.log')
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(log_formatter)
+logger.addHandler(file_handler)
 
-handler = logging.FileHandler('VE.log')
-
-#formatter = logging.Formatter('%(asctime)s - %(levelname)s\n - %(message)s')
-
-formatter = logging.Formatter('\n%(message)s')
-
-handler.setFormatter(formatter)
-
-logger.addHandler(handler)
+# Log to console
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(log_formatter)
+logger.addHandler(console_handler)
